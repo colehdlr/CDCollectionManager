@@ -6,6 +6,7 @@ import main.manager.CDCollection;
 import main.manager.CDManager;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -118,6 +119,7 @@ public class App {
         sidePanel.add(newCollectionButton);
 
         mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBorder(new EmptyBorder(0,1,0,0));
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setMinimumSize(new Dimension(0, 100));
         mainPanel.add(activePanel, BorderLayout.CENTER);

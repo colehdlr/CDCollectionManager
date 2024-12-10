@@ -1,11 +1,16 @@
 package main.manager;
 
-import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+
 import java.util.ArrayList;
 import java.io.FileReader;
 import java.util.Arrays;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
 
 import main.App;
 import main.gui.CDPanel;
@@ -14,11 +19,18 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class CDManager {
     private final ArrayList<CDCollection> collectionList;
     private final JPanel activePanel;
+
+    private static final String USER_HOME = System.getProperty("user.home");
+    private static final Path DATA_DIR = Paths.get(USER_HOME, ".collectionmanager");
+    private static final Path COLLECTIONS_FILE = DATA_DIR.resolve("collections.json");
+    private static final Path CD_INFO_FILE = DATA_DIR.resolve("cd_info.json");
+
     public CDManager(JPanel activePanel) {
         collectionList = new ArrayList<>();
         collectionList.add(new CDCollection("Library"));
@@ -27,10 +39,7 @@ public class CDManager {
         this.activePanel = activePanel;
     }
     public void loadCDs() {
-        // Load the CDs from the database
-        // and add them to the list
-        System.out.println("Loading CDs from database...");
-        try (FileReader reader = new FileReader("./src/main/resources/cd_info.json")) {
+        try (FileReader reader = new FileReader(CD_INFO_FILE.toFile())) {
             JSONParser parser = new JSONParser();
             JSONObject cdArrayObject = (JSONObject) parser.parse(reader);
             JSONArray cdArray = (JSONArray) cdArrayObject.get("cds");
@@ -42,7 +51,19 @@ public class CDManager {
                 String artist = (String) cdObject.get("artist");
                 String genre = (String) cdObject.get("genre");
                 String date = (String) cdObject.get("date");
-                ImageIcon cover = new ImageIcon("./src/main/resources/images/" + cdObject.get("cover"));
+
+                // Load cover image from resources
+                ImageIcon cover;
+                String coverFileName = (String) cdObject.get("cover");
+                try (InputStream imageStream = getClass().getResourceAsStream("/images/" + coverFileName)) {
+                    if (imageStream != null) {
+                        cover = new ImageIcon(ImageIO.read(imageStream));
+                    } else {
+                        System.err.println("Could not find cover image: " + coverFileName);
+                        cover = new ImageIcon(); // Empty icon as fallback
+                    }
+                }
+
                 ArrayList<Track> tracks = new ArrayList<>();
                 for (Object track : (JSONArray) cdObject.get("tracks")) {
                     JSONObject trackObject = (JSONObject) track;
@@ -61,9 +82,11 @@ public class CDManager {
         }
     }
 
+
     public void loadCollections(App app) {
         System.out.println("Loading collections from database...");
-        try (FileReader reader = new FileReader("./src/main/resources/collections.json")) {
+
+        try (FileReader reader = new FileReader(COLLECTIONS_FILE.toFile())) {
             JSONParser parser = new JSONParser();
             JSONObject collectionArrayObject = (JSONObject) parser.parse(reader);
             JSONArray collectionArray = (JSONArray) collectionArrayObject.get("collections");
@@ -82,8 +105,12 @@ public class CDManager {
                 app.createNewCollection(name);
 
                 for (int i : cdIds) {
-                    System.out.println("Adding " + collectionList.get(0).get(i).getTitle() + " to " + name + ".");
-                    getCDCollection(name).add(collectionList.get(0).get(i));
+                    if (i < collectionList.get(0).size()) {
+                        System.out.println("Adding " + collectionList.get(0).get(i).getTitle() + " to " + name + ".");
+                        getCDCollection(name).add(collectionList.get(0).get(i));
+                    } else {
+                        System.err.println("Invalid CD ID: " + i + " for collection: " + name);
+                    }
                 }
             }
             System.out.println("Collections successfully loaded.\n");
@@ -93,7 +120,7 @@ public class CDManager {
     }
 
     public void saveToCollectionFile(int cdIndex, int collectionIndex) {
-        try (FileReader reader = new FileReader("./src/main/resources/collections.json")) {
+        try (FileReader reader = new FileReader(COLLECTIONS_FILE.toFile())) {
             JSONParser parser = new JSONParser();
             JSONObject collectionArrayObject = (JSONObject) parser.parse(reader);
             // Get the collections array
@@ -105,7 +132,7 @@ public class CDManager {
             boolean added = cdIds.add(cdIndex);
 
             // Write the updated JSON back to the file
-            try (FileWriter file = new FileWriter("./src/main/resources/collections.json")) {
+            try (FileWriter file = new FileWriter(COLLECTIONS_FILE.toFile())) {
                 file.write(collectionArrayObject.toJSONString());
                 file.flush();
             }
@@ -119,7 +146,7 @@ public class CDManager {
         } catch (IOException e) {
             System.err.println("Error saving CD to collection database: " + e.getMessage());
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            System.err.println("Error parsing collection database: " + e.getMessage());
         }
     }
 
@@ -197,17 +224,15 @@ public class CDManager {
     }
 
     public void removeFromCollectionFile(CDCollection collection, CDPanel cdPanel) {
-        try (FileReader reader = new FileReader("./src/main/resources/collections.json")) {
+        try (FileReader reader = new FileReader(COLLECTIONS_FILE.toFile())) {
             JSONParser parser = new JSONParser();
             JSONObject collectionArrayObject = (JSONObject) parser.parse(reader);
-            // Get the collections array
             JSONArray collectionsArray = (JSONArray) collectionArrayObject.get("collections");
-            JSONObject collectionObject = (JSONObject) collectionsArray.get(collectionList.indexOf(collection) -1);
+            JSONObject collectionObject = (JSONObject) collectionsArray.get(collectionList.indexOf(collection) - 1);
             JSONArray cdIds = (JSONArray) collectionObject.get("cdIds");
             cdIds.remove(Long.valueOf(collectionList.get(0).indexOf(cdPanel)));
 
-            // Write the updated JSON back to the file
-            try (FileWriter file = new FileWriter("./src/main/resources/collections.json")) {
+            try (FileWriter file = new FileWriter(COLLECTIONS_FILE.toFile())) {
                 file.write(collectionArrayObject.toJSONString());
                 file.flush();
             }
@@ -217,7 +242,7 @@ public class CDManager {
         } catch (IOException e) {
             System.err.println("Error saving collection change to database: " + e.getMessage());
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            System.err.println("Error parsing collection database: " + e.getMessage());
         }
     }
     public void refreshActivePanel(int currentTab) {
@@ -228,5 +253,35 @@ public class CDManager {
 
         activePanel.revalidate();
         activePanel.repaint();
+    }
+
+    public void loadDataFiles() {
+        try {
+            Files.createDirectories(DATA_DIR);
+            Path collectionsFile = DATA_DIR.resolve("collections.json");
+            Path cdInfoFile = DATA_DIR.resolve("cd_info.json");
+
+            if (!Files.exists(collectionsFile)) {
+                try (InputStream in = getClass().getResourceAsStream("/collections.json")) {
+                    if (in != null) {
+                        Files.copy(in, collectionsFile);
+                    } else {
+                        System.err.println("Could not find collections.json in resources");
+                    }
+                }
+            }
+
+            if (!Files.exists(cdInfoFile)) {
+                try (InputStream in = getClass().getResourceAsStream("/cd_info.json")) {
+                    if (in != null) {
+                        Files.copy(in, cdInfoFile);
+                    } else {
+                        System.err.println("Could not find cd_info.json in resources");
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error initializing data files: " + e.getMessage());
+        }
     }
 }

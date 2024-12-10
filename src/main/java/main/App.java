@@ -45,6 +45,7 @@ public class App {
         // Load CDs
         System.out.println("Creating CD Manager...");
         cdManager = new CDManager(activePanel);
+        cdManager.loadDataFiles();
         cdManager.loadCDs();
 
         updateMenuBar();
@@ -59,7 +60,7 @@ public class App {
         ));
 
         JLabel cdIconLabel = new JLabel(new ImageIcon(
-                new ImageIcon("./src/main/resources/images/cd_icon.png")
+                new ImageIcon(Objects.requireNonNull(getClass().getResource("/images/cd_icon.png")))
                         .getImage()
                         .getScaledInstance(24, 24, Image.SCALE_SMOOTH)));
         topPanel.add(cdIconLabel, BorderLayout.WEST);

@@ -1,0 +1,102 @@
+
+{
+  "cds": [
+    {
+      "title": "Sports",
+      "artist": "Modern Baseball",
+      "genre": "Midwest Emo",
+      "date": "2012-11-27",
+      "cover": "sports.jpg",
+      "tracks": [
+        {"title": "Re-Do", "duration": "2:11"},
+        {"title": "Tears Over Bears", "duration": "2:48"},
+        {"title": "The Weekend", "duration": "3:30"},
+        {"title": "@chl03k", "duration": "1:39"},
+        {"title": "Hours Outside in the Snow", "duration": "3:30"},
+        {"title": "I Think You Were in My Profile Picture Once", "duration": "1:19"},
+        {"title": "Re-Done", "duration": "4:30"},
+        {"title": "Cooke", "duration": "3:44"},
+        {"title": "See Ya, Sucker", "duration": "2:12"},
+        {"title": "Look Out", "duration": "0:55"},
+        {"title": "Play Ball!", "duration": "2:16"},
+        {"title": "Coals", "duration": "2:11"}
+      ]
+    },
+    {
+      "title": "American Football",
+      "artist": "American Football",
+      "genre": "Midwest Emo",
+      "date": "1999-09-14",
+      "cover": "americanfootball.jpg",
+      "tracks": [
+        {"title": "Never Meant", "duration": "4:28"},
+        {"title": "The Summer Ends", "duration": "4:46"},
+        {"title": "Honestly?", "duration": "6:11"},
+        {"title": "For Sure", "duration": "3:12"},
+        {"title": "You Know I Should Be Leaving Soon", "duration": "4:03"},
+        {"title": "But the Regrets Are Killing Me", "duration": "4:34"},
+        {"title": "I'll See You When We're Both Not So Emotional", "duration": "8:11"},
+        {"title": "Stay Home", "duration": "5:27"},
+        {"title": "The One with the Wurlitzer", "duration": "4:56"}
+      ]
+    },
+    {
+      "title": "songs",
+      "artist": "Adrianne Lenker",
+      "genre": "Folk",
+      "date": "2020-10-23",
+      "cover": "songs.jpg",
+      "tracks": [
+        {"title": "two reverse", "duration": "2:45"},
+        {"title": "ingydar", "duration": "5:05"},
+        {"title": "anything", "duration": "3:39"},
+        {"title": "forwards beckon rebound", "duration": "3:27"},
+        {"title": "heavy focus", "duration": "3:15"},
+        {"title": "half return", "duration": "2:50"},
+        {"title": "come", "duration": "3:51"},
+        {"title": "zombie girl", "duration": "3:50"},
+        {"title": "not a lot, just forever", "duration": "3:39"},
+        {"title": "dragon eyes", "duration": "3:20"},
+        {"title": "my angel", "duration": "2:39"}
+      ]
+    },
+    {
+      "title": "Hide Here Forever",
+      "artist": "Strictly Ballroom",
+      "genre": "Rock, Emo, Post Rock",
+      "date": "1997-09-01",
+      "cover": "hidehereforever.jpg",
+      "tracks": [
+        {"title": "A Picture", "duration": "4:46"},
+        {"title": "Crickets", "duration": "4:07"},
+        {"title": "Elevator Action", "duration": "4:10"},
+        {"title": "Trains in the Distance at Night", "duration": "5:21"},
+        {"title": "Something That Just Is", "duration": "3:18"},
+        {"title": "This Will Self Destruct", "duration": "5:11"},
+        {"title": "Knots on a Counting Rope", "duration": "4:35"},
+        {"title": "A Sudden Interest in Nature", "duration": "14:49"}
+      ]
+    },
+    {
+      "title": "Everything Seems Better Now",
+      "artist": "Vs Self",
+      "genre": "Midwest Emo",
+      "date": "2020-04-04",
+      "cover": "everythingseemsbetternow.jpg",
+      "tracks": [
+        {"title": "Homesick", "duration": "3:08"},
+        {"title": "Waves", "duration": "2:28"},
+        {"title": "Promise", "duration": "2:31"},
+        {"title": "Heartache", "duration": "1:26"},
+        {"title": "Leave Everything", "duration": "2:32"},
+        {"title": "Desert", "duration": "2:10"},
+        {"title": "Worthless", "duration": "1:55"},
+        {"title": "Yesterday by The Beatles or: Imagine by Yoko Ono as Performed by John Lennon", "duration": "2:39"},
+        {"title": "Ti Esrever", "duration": "1:58"},
+        {"title": "Still", "duration": "1:03"},
+        {"title": "Wake", "duration": "3:45"},
+        {"title": "Mourn", "duration": "3:20"}
+      ]
+    }
+  ]
+}

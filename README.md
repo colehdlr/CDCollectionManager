@@ -12,3 +12,10 @@ View, sort and save CDs using this tool.
 You can download the latest version of CD Collection Manager here:
 
 [Download CD Collection Manager](/target/CDCollectionManager.jar)
+
+### *How to run:*
+1. Download from [link above](/target/CDCollectionManager.jar)
+2. Navigate to file in terminal
+3. Check java is installed: `java --version`
+4. Run application: `java -jar CDCollectionManager.jar`
+

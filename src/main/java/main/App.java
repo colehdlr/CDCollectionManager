@@ -59,7 +59,7 @@ public class App {
         ));
 
         JLabel cdIconLabel = new JLabel(new ImageIcon(
-                new ImageIcon("./src/main/data/images/cd_icon.png")
+                new ImageIcon("./src/main/resources/images/cd_icon.png")
                         .getImage()
                         .getScaledInstance(24, 24, Image.SCALE_SMOOTH)));
         topPanel.add(cdIconLabel, BorderLayout.WEST);

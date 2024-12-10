@@ -30,7 +30,7 @@ public class CDManager {
         // Load the CDs from the database
         // and add them to the list
         System.out.println("Loading CDs from database...");
-        try (FileReader reader = new FileReader("./src/main/data/cd_info.json")) {
+        try (FileReader reader = new FileReader("./src/main/resources/cd_info.json")) {
             JSONParser parser = new JSONParser();
             JSONObject cdArrayObject = (JSONObject) parser.parse(reader);
             JSONArray cdArray = (JSONArray) cdArrayObject.get("cds");
@@ -42,7 +42,7 @@ public class CDManager {
                 String artist = (String) cdObject.get("artist");
                 String genre = (String) cdObject.get("genre");
                 String date = (String) cdObject.get("date");
-                ImageIcon cover = new ImageIcon("./src/main/data/images/" + cdObject.get("cover"));
+                ImageIcon cover = new ImageIcon("./src/main/resources/images/" + cdObject.get("cover"));
                 ArrayList<Track> tracks = new ArrayList<>();
                 for (Object track : (JSONArray) cdObject.get("tracks")) {
                     JSONObject trackObject = (JSONObject) track;
@@ -63,7 +63,7 @@ public class CDManager {
 
     public void loadCollections(App app) {
         System.out.println("Loading collections from database...");
-        try (FileReader reader = new FileReader("./src/main/data/collections.json")) {
+        try (FileReader reader = new FileReader("./src/main/resources/collections.json")) {
             JSONParser parser = new JSONParser();
             JSONObject collectionArrayObject = (JSONObject) parser.parse(reader);
             JSONArray collectionArray = (JSONArray) collectionArrayObject.get("collections");
@@ -93,7 +93,7 @@ public class CDManager {
     }
 
     public void saveToCollectionFile(int cdIndex, int collectionIndex) {
-        try (FileReader reader = new FileReader("./src/main/data/collections.json")) {
+        try (FileReader reader = new FileReader("./src/main/resources/collections.json")) {
             JSONParser parser = new JSONParser();
             JSONObject collectionArrayObject = (JSONObject) parser.parse(reader);
             // Get the collections array
@@ -105,19 +105,19 @@ public class CDManager {
             boolean added = cdIds.add(cdIndex);
 
             // Write the updated JSON back to the file
-            try (FileWriter file = new FileWriter("./src/main/data/collections.json")) {
+            try (FileWriter file = new FileWriter("./src/main/resources/collections.json")) {
                 file.write(collectionArrayObject.toJSONString());
                 file.flush();
             }
 
             if (added) {
-                System.out.println("New ID added successfully!");
+                System.out.println("CD saved to collection database successfully!");
             }
             else {
-                System.out.println("Failed to add new ID.");
+                System.out.println("Failed to save CD to collection database.");
             }
         } catch (IOException e) {
-            System.err.println("Error saving collection change to database: " + e.getMessage());
+            System.err.println("Error saving CD to collection database: " + e.getMessage());
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
@@ -197,7 +197,7 @@ public class CDManager {
     }
 
     public void removeFromCollectionFile(CDCollection collection, CDPanel cdPanel) {
-        try (FileReader reader = new FileReader("./src/main/data/collections.json")) {
+        try (FileReader reader = new FileReader("./src/main/resources/collections.json")) {
             JSONParser parser = new JSONParser();
             JSONObject collectionArrayObject = (JSONObject) parser.parse(reader);
             // Get the collections array
@@ -207,7 +207,7 @@ public class CDManager {
             cdIds.remove(Long.valueOf(collectionList.get(0).indexOf(cdPanel)));
 
             // Write the updated JSON back to the file
-            try (FileWriter file = new FileWriter("./src/main/data/collections.json")) {
+            try (FileWriter file = new FileWriter("./src/main/resources/collections.json")) {
                 file.write(collectionArrayObject.toJSONString());
                 file.flush();
             }

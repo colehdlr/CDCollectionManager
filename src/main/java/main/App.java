@@ -1,21 +1,15 @@
 package main;
 
-import java.awt.Taskbar;
-
 import main.gui.TabButton;
 import main.gui.CDPanel;
 import main.manager.CDCollection;
 import main.manager.CDManager;
 
 import javax.swing.*;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
 

@@ -5,7 +5,6 @@ import main.manager.CDManager;
 import main.manager.Track;
 
 import javax.swing.*;
-import javax.swing.BoxLayout;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -186,7 +185,7 @@ public class CDPanel extends JPanel {
                         {"Date", date}
                 };
                 String[] columnNames = {"", ""};
-                JTable infoTable = new JTable(data, columnNames) {
+                return new JTable(data, columnNames) {
                     @Override
                     public boolean isCellEditable(int row, int column) {
                         return false;
@@ -200,7 +199,6 @@ public class CDPanel extends JPanel {
                         return false;
                     }
                 };
-                return infoTable;
             }
 
             @Override

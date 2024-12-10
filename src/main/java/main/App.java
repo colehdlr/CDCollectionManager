@@ -36,6 +36,7 @@ public class App {
 
         activePanel = new JPanel();
         activePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        activePanel.setBackground(Color.WHITE);
         activePanel.setPreferredSize(new Dimension(300, 300));
         activePanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 

@@ -1,5 +1,7 @@
 package main;
 
+import java.awt.Taskbar;
+
 import main.gui.TabButton;
 import main.gui.CDPanel;
 import main.manager.CDCollection;
@@ -13,6 +15,7 @@ import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -290,6 +293,16 @@ public class App {
         System.setProperty( "apple.laf.useScreenMenuBar", "true" );
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("CDManager");
+            Image iconImage = new ImageIcon(Objects.requireNonNull(App.class.getResource("/images/cd_icon.png"))).getImage();
+            frame.setIconImage(iconImage);
+            try {
+                if (Taskbar.isTaskbarSupported()) {
+                    Taskbar.getTaskbar().setIconImage(iconImage);
+                }
+            } catch (final UnsupportedOperationException | SecurityException e) {
+                System.err.println("Taskbar icon is not supported by OS: " + e.getMessage());
+            }
+
             frame.setContentPane(new App(frame).appPanel);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(800, 600);

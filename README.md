@@ -1,4 +1,4 @@
-# CollectionManager
+# CD Collection Manager
 A collection manager for personal CD collection made in SwingGUI. 
 
 View, sort and save CDs using this tool.

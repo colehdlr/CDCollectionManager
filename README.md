@@ -3,9 +3,8 @@ A collection manager for personal CD collection made in SwingGUI.
 
 View, sort and save CDs using this tool.
 
-<img width="480" alt="Screenshot 2024-12-10 at 10 19 56" src="https://github.com/user-attachments/assets/cdd11757-81bf-4580-b679-fd503478033f">
-<img width="330" alt="Screenshot 2024-12-10 at 10 56 57" src="https://github.com/user-attachments/assets/9e51e8a7-aaf7-4e47-9799-e1955571ad17">
-
+<img width="480" alt="Screenshot 2024-12-10 at 13 41 27" src="https://github.com/user-attachments/assets/01edba42-c32f-4f2a-b248-3b83f6865732">
+<img width="330" alt="Screenshot 2024-12-10 at 13 41 34" src="https://github.com/user-attachments/assets/d514822f-71c2-42f5-ab10-ecfaa99988c4">
 
 ## Download
 

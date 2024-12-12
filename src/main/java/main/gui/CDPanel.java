@@ -1,6 +1,6 @@
 package main.gui;
 
-import main.manager.CDCollection;
+import main.manager.CDFolder;
 import main.manager.CDManager;
 import main.manager.Track;
 
@@ -55,7 +55,7 @@ public class CDPanel extends JPanel {
         this.add(artistLabel, BorderLayout.SOUTH);
 
         // Update the popup menu
-        updateCDPanelPopupMenu(cdManager.getCollectionList(), currentTab);
+        updateCDPanelPopupMenu(cdManager.getFolderList(), currentTab);
 
         // Add mouse listeners
         this.addMouseListener(new MouseAdapter() {
@@ -221,13 +221,13 @@ public class CDPanel extends JPanel {
         return title;
     }
 
-    public void updateCDPanelPopupMenu(ArrayList<CDCollection> collectionList, int currentTab) {
+    public void updateCDPanelPopupMenu(ArrayList<CDFolder> collectionList, int currentTab) {
         popupMenu = new JPopupMenu();
 
         // Favorite option
         JMenuItem favoriteItem = new JMenuItem("Favorite");
         favoriteItem.addActionListener(e1 ->
-            cdManager.addToCollection("♥ Favorites", this)
+            cdManager.addToFolder("♥ Favorites", this)
         );
         popupMenu.add(favoriteItem);
 
@@ -237,7 +237,7 @@ public class CDPanel extends JPanel {
             for (int i = 2; i < collectionList.size(); i++) {
                 JMenuItem collectionItem = new JMenuItem(collectionList.get(i).getName());
                 final int finalI = i;
-                collectionItem.addActionListener(e1 -> cdManager.addToCollection(collectionList.get(finalI).getName(), this));
+                collectionItem.addActionListener(e1 -> cdManager.addToFolder(collectionList.get(finalI).getName(), this));
                 dynamicItems.add(collectionItem);
             }
             popupMenu.add(dynamicItems);

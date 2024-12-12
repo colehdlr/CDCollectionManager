@@ -4,10 +4,10 @@ import main.gui.CDPanel;
 
 import java.util.ArrayList;
 
-public class CDCollection extends ArrayList<CDPanel> {
+public class CDFolder extends ArrayList<CDPanel> {
     private final String name;
 
-    public CDCollection(String name) {
+    public CDFolder(String name) {
         this.name = name;
     }
 

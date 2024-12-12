@@ -2,7 +2,7 @@ package main;
 
 import main.gui.TabButton;
 import main.gui.CDPanel;
-import main.manager.CDCollection;
+import main.manager.CDFolder;
 import main.manager.CDManager;
 
 import javax.swing.*;
@@ -25,7 +25,7 @@ public class App {
     private final JPanel activePanel;
 
     private final ArrayList<TabButton> sideTabs = new ArrayList<>();
-    private final TabButton newCollectionButton;
+    private final TabButton newFolderButton;
     private int currentTab = 0;
 
     private final TabButton addCDButton;
@@ -94,29 +94,29 @@ public class App {
         sidePanel.setLayout( new FlowLayout(FlowLayout.CENTER, 0, 0));
 
         // Create library
-        createNewCollection("Library");
-        // Load collections
-        cdManager.loadCollections(this);
+        createNewFolder("Library");
+        // Load folders
+        cdManager.loadFolders(this);
 
         changeActivePanel(0);
 
-        newCollectionButton = new TabButton("+ New Collection");
-        newCollectionButton.addMouseListener(new MouseAdapter() {
+        newFolderButton = new TabButton("+ New Folder");
+        newFolderButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                createNewCollection();
+                createNewFolder();
             }
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                newCollectionButton.onHover();
+                newFolderButton.onHover();
             }
             @Override
             public void mouseExited(MouseEvent e) {
-                newCollectionButton.offHover();
+                newFolderButton.offHover();
             }
         });
-        sidePanel.add(newCollectionButton);
+        sidePanel.add(newFolderButton);
 
         mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBorder(new EmptyBorder(0,1,0,0));
@@ -130,13 +130,13 @@ public class App {
         appPanel.add(topPanel, BorderLayout.NORTH);
     }
 
-    public void createNewCollection(String name) {
-        TabButton newCollectionTab = new TabButton(name);
-        newCollectionTab.addMouseListener(new MouseAdapter() {
+    public void createNewFolder(String name) {
+        TabButton newFolderTab = new TabButton(name);
+        newFolderTab.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                    changeActivePanel(sideTabs.indexOf(newCollectionTab));
+                    changeActivePanel(sideTabs.indexOf(newFolderTab));
                 } else if (e.getButton() == MouseEvent.BUTTON2 || e.getButton() == MouseEvent.BUTTON3 && !Objects.equals(name, "Library") && !Objects.equals(name, "♥ Favorites")) {
                     JPopupMenu popupMenu = new JPopupMenu();
 
@@ -156,7 +156,7 @@ public class App {
                         int response = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 
                         if (response == JOptionPane.YES_OPTION) {
-                            // TODO remove collection
+                            // TODO remove folder
                         }
                     });
 
@@ -170,49 +170,52 @@ public class App {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                newCollectionTab.onHover();
+                newFolderTab.onHover();
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                newCollectionTab.offHover();
+                newFolderTab.offHover();
             }
         });
-        sidePanel.add(newCollectionTab);
-        sideTabs.add(newCollectionTab);
+        sidePanel.add(newFolderTab);
+        sideTabs.add(newFolderTab);
 
         updateMenuBar();
 
         // Switch to new tab
-        changeActivePanel(sideTabs.indexOf(newCollectionTab));
+        changeActivePanel(sideTabs.indexOf(newFolderTab));
     }
 
-    public void createNewCollection() {
-        String newCollectionName = (String)JOptionPane.showInputDialog(
+    public void createNewFolder() {
+        String newFolderName = (String)JOptionPane.showInputDialog(
                 appPanel,
-                "Enter new collection name:",
-                "Create new collection",
+                "Enter new folder name:",
+                "Create new folder",
                 JOptionPane.PLAIN_MESSAGE,
                 null,
                 null,
                 ""
         );
         // Customer has entered empty string
-        if (Objects.equals(newCollectionName, "")) {
-            JOptionPane.showMessageDialog(new JFrame(), "Please use valid collection name.", "Invalid Collection Name",
+        if (Objects.equals(newFolderName, "")) {
+            JOptionPane.showMessageDialog(new JFrame(), "Please use valid folder name.", "Invalid Folder Name",
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
         // Customer has closed the dialog
-        else if (Objects.equals(newCollectionName, null)) {
+        else if (Objects.equals(newFolderName, null)) {
             return;
         }
 
-        // Add new collection tab then add back new collection button and repaint
-        sidePanel.remove(newCollectionButton);
-        cdManager.createNewCollection(newCollectionName);
-        createNewCollection(newCollectionName);
-        sidePanel.add(newCollectionButton);
+        // Save folder to file
+        cdManager.saveNewFolder(newFolderName);
+
+        // Add new folder tab then add back new folder button and repaint
+        sidePanel.remove(newFolderButton);
+        cdManager.createNewFolder(newFolderName);
+        createNewFolder(newFolderName);
+        sidePanel.add(newFolderButton);
         sidePanel.revalidate();
         sidePanel.repaint();
     }
@@ -224,9 +227,9 @@ public class App {
         JMenu editMenu = new JMenu("Edit");
         JMenu addSubMenu = new JMenu("Add");
         JMenuItem newCDItem = new JMenuItem("New CD");
-        JMenuItem newCollectionItem = new JMenuItem("New Collection");
+        JMenuItem newFolderItem = new JMenuItem("New Folder");
         addSubMenu.add(newCDItem);
-        addSubMenu.add(newCollectionItem);
+        addSubMenu.add(newFolderItem);
         editMenu.add(addSubMenu);
         menuBar.add(editMenu);
 
@@ -236,17 +239,17 @@ public class App {
         JMenuItem favoritesItem = new JMenuItem("Favorites");
         viewMenu.add(libraryItem);
         viewMenu.add(favoritesItem);
-        // Add separator before dynamic collections
+        // Add separator before dynamic folders
         viewMenu.addSeparator();
-        for (int i = 2; i < cdManager.getCollectionList().size(); i++) {
-            CDCollection collection = cdManager.getCollectionList().get(i);
-            JMenuItem collectionItem = new JMenuItem(collection.getName());
+        for (int i = 2; i < cdManager.getFolderList().size(); i++) {
+            CDFolder folder = cdManager.getFolderList().get(i);
+            JMenuItem folderItem = new JMenuItem(folder.getName());
             int finalI = i;
-            collectionItem.addActionListener(e ->
+            folderItem.addActionListener(e ->
                     changeActivePanel(finalI)
             );
 
-            viewMenu.add(collectionItem);
+            viewMenu.add(folderItem);
         }
         menuBar.add(viewMenu);
 
@@ -254,7 +257,7 @@ public class App {
 
         // Action Listeners
         newCDItem.addActionListener(e -> cdManager.addCD());
-        newCollectionItem.addActionListener(e -> createNewCollection());
+        newFolderItem.addActionListener(e -> createNewFolder());
         libraryItem.addActionListener(e ->
             changeActivePanel(0)
         );
@@ -263,23 +266,23 @@ public class App {
         );
     }
 
-    public void changeActivePanel(int collectionTabIndex) {
-        if (currentTab != collectionTabIndex) {
+    public void changeActivePanel(int folderTabIndex) {
+        if (currentTab != folderTabIndex) {
             // Set all other tabs to inactive
             for (TabButton tab : sideTabs) {
                 tab.setInactive();
             }
-            sideTabs.get(collectionTabIndex).setActive();
-            currentTab = collectionTabIndex;
+            sideTabs.get(folderTabIndex).setActive();
+            currentTab = folderTabIndex;
 
             // Set page to current tab
             activePanel.removeAll();
-            for (CDPanel cdPanel : cdManager.getCDCollection(currentTab)) {
+            for (CDPanel cdPanel : cdManager.getCDFolder(currentTab)) {
                 activePanel.add(cdPanel);
             }
 
             // Update popup menu so that current tab is up to date
-            cdManager.getCDCollection(currentTab).forEach(cdPanel -> cdPanel.updateCDPanelPopupMenu(cdManager.getCollectionList(), currentTab));
+            cdManager.getCDFolder(currentTab).forEach(cdPanel -> cdPanel.updateCDPanelPopupMenu(cdManager.getFolderList(), currentTab));
 
             activePanel.revalidate();
             activePanel.repaint();

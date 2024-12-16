@@ -193,10 +193,19 @@ public class CDManager {
 
     public void addToFolder(String folderName, CDPanel cdPanel) {
         for (CDFolder folder : folderList) {
-            if (folder.getName().equals(folderName) && folder.stream().noneMatch(cd -> cd.getTitle().equals(cdPanel.getTitle()))) {
-                folder.add(cdPanel);
-                saveToFoldersFile(getCDFolder(0).indexOf(cdPanel), folderList.indexOf(folder));
-                break;
+            if (folder.getName().equals(folderName) ) {
+                if (folder.stream().noneMatch(cd -> cd.getTitle().equals(cdPanel.getTitle()))) {
+                    folder.add(cdPanel);
+                    saveToFoldersFile(getCDFolder(0).indexOf(cdPanel), folderList.indexOf(folder));
+                    break;
+                }
+                else {
+                    JOptionPane.showMessageDialog(null,
+                            cdPanel.getTitle() + " is already in " + folderName,
+                            "Cancelled",
+                            JOptionPane.WARNING_MESSAGE);
+                    System.err.println("CD already exists in folder.");
+                }
             }
         }
     }

@@ -22,7 +22,7 @@ public class TabButton extends JPanel {
     public TabButton(String name) {
         this.name = name;
         this.setLayout(new BorderLayout());
-        this.add(new JLabel(name), BorderLayout.CENTER);
+        this.add(new JLabel(name), BorderLayout.WEST);
         this.setPreferredSize(new Dimension(150, 50));
         this.setBorder(INACTIVE_BORDER);
     }

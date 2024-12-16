@@ -35,11 +35,15 @@ public class App {
     public App(JFrame frame) {
         this.frame = frame;
 
+        // TODO fix shrink functionality
         activePanel = new JPanel();
         activePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         activePanel.setBackground(Color.WHITE);
-        activePanel.setPreferredSize(new Dimension(300, 300));
+        activePanel.setPreferredSize(new Dimension(125, -1));
         activePanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+        JScrollPane activeScrollPane = new JScrollPane(activePanel);
+        activeScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+        activeScrollPane.setPreferredSize(new Dimension(125,0));
 
         // Load CDs
         System.out.println("Creating CD Manager...");
@@ -122,7 +126,7 @@ public class App {
         mainPanel.setBorder(new EmptyBorder(0,1,0,0));
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setMinimumSize(new Dimension(0, 100));
-        mainPanel.add(activePanel, BorderLayout.CENTER);
+        mainPanel.add(activeScrollPane, BorderLayout.CENTER);
         mainPanel.add(sidePanel, BorderLayout.WEST);
 
         appPanel = new JPanel(new BorderLayout());
@@ -132,6 +136,12 @@ public class App {
 
     public void createNewFolder(String name) {
         TabButton newFolderTab = new TabButton(name);
+
+        // Add heart for favorites
+        if (Objects.equals(name, "Favorites")) {
+            newFolderTab.add(new JLabel("♥"), BorderLayout.EAST);
+        }
+
         newFolderTab.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -189,7 +199,7 @@ public class App {
 
     public void createNewFolder() {
         String newFolderName = (String)JOptionPane.showInputDialog(
-                appPanel,
+                null,
                 "Enter new folder name:",
                 "Create new folder",
                 JOptionPane.PLAIN_MESSAGE,
@@ -200,7 +210,7 @@ public class App {
         // Customer has entered empty string
         if (Objects.equals(newFolderName, "")) {
             JOptionPane.showMessageDialog(new JFrame(), "Please use valid folder name.", "Invalid Folder Name",
-                    JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
         // Customer has closed the dialog

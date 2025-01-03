@@ -30,16 +30,17 @@ public class TabButton extends JPanel {
     public void setActive() {
         this.setBorder(ACTIVE_BORDER);
     }
+
     public void setInactive() {
         this.setBorder(INACTIVE_BORDER);
     }
+
     public void onHover() {
         if (this.getBorder() == INACTIVE_BORDER) {
             this.setBorder(HOVER_BORDER);
         }
-
-        // Option to remove appears
     }
+
     public void offHover() {
         if (this.getBorder() == HOVER_BORDER) {
             this.setBorder(INACTIVE_BORDER);

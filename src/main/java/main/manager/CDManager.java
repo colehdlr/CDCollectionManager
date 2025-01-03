@@ -35,6 +35,7 @@ public class CDManager {
 
         this.activePanel = activePanel;
     }
+
     public void loadCDs() {
         try {
             JSONArray cdArray = getJSONArray(CD_INFO_FILE, "cds");
@@ -82,6 +83,8 @@ public class CDManager {
         System.out.println("Loading folders from database...");
         try {
             JSONArray folderArray = getJSONArray(FOLDERS_FILE, "folders");
+            System.out.println(folderArray);
+
             for (Object folderObject : folderArray) {
                 JSONObject folderJSONObject = (JSONObject) folderObject;
 
@@ -114,7 +117,7 @@ public class CDManager {
     public void saveToFoldersFile(int cdIndex, int folderIndex) {
         try {
             JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE);
-            JSONObject folderObject = (JSONObject)((JSONArray) folderArrayObject.get("folders")).get(folderIndex-1);
+            JSONObject folderObject = (JSONObject) ((JSONArray) folderArrayObject.get("folders")).get(folderIndex - 1);
             JSONArray cdIds = (JSONArray) folderObject.get("cdIds");
 
             @SuppressWarnings("unchecked")
@@ -128,8 +131,7 @@ public class CDManager {
 
             if (added) {
                 System.out.println("CD saved to folder database successfully!");
-            }
-            else {
+            } else {
                 System.out.println("Failed to save CD to folder database.");
             }
         } catch (IOException e) {
@@ -193,13 +195,12 @@ public class CDManager {
 
     public void addToFolder(String folderName, CDPanel cdPanel) {
         for (CDFolder folder : folderList) {
-            if (folder.getName().equals(folderName) ) {
+            if (folder.getName().equals(folderName)) {
                 if (folder.stream().noneMatch(cd -> cd.getTitle().equals(cdPanel.getTitle()))) {
                     folder.add(cdPanel);
                     saveToFoldersFile(getCDFolder(0).indexOf(cdPanel), folderList.indexOf(folder));
                     break;
-                }
-                else {
+                } else {
                     JOptionPane.showMessageDialog(null,
                             cdPanel.getTitle() + " is already in " + folderName,
                             "Cancelled",
@@ -221,18 +222,19 @@ public class CDManager {
 
     // Remove CD from entire library
     public void removeCD(CDPanel cdPanel) {
+        // TODO : fix this function
+
         for (CDFolder folder : folderList) {
-            // Remove from all folders in list
-            folder.remove(cdPanel);
-
-            // Remove from all folders in file
-            //removeFromFolderFile(folder, cdPanel);
-
-            refreshActivePanel(folderList.indexOf(folder));
+            removeFromFolderFile(folder, cdPanel);
         }
 
         // Remove from cd_info file
+
+        // Remove image from library
+
+        refreshActivePanel(0);
     }
+
     // Remove CD from selected folder
     public void removeCD(CDPanel cdPanel, int currentTab) {
         // Remove from all folder in list
@@ -240,29 +242,55 @@ public class CDManager {
 
         // Remove from folder in file
         removeFromFolderFile(folderList.get(currentTab), cdPanel);
+    }
 
-
-        refreshActivePanel(currentTab);
+    public void removeFolder(CDFolder folder) {
+        folderList.remove(folder);
+        removeFromFolderFile(folder);
     }
 
     public void removeFromFolderFile(CDFolder folder, CDPanel cdPanel) {
-        try {
-            JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE);
-            JSONObject folderObject = (JSONObject)((JSONArray) folderArrayObject.get("folders")).get(folderList.indexOf(folder)-1);
-            JSONArray cdIds = (JSONArray) folderObject.get("cdIds");
-            cdIds.remove(Long.valueOf(folderList.get(0).indexOf(cdPanel)));
+        if (folderList.indexOf(folder) > 0) {
+            try {
+                JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE);
+                JSONObject folderObject = (JSONObject) ((JSONArray) folderArrayObject.get("folders")).get(folderList.indexOf(folder) - 1);
+                JSONArray cdIds = (JSONArray) folderObject.get("cdIds");
+                cdIds.remove(Long.valueOf(folderList.get(0).indexOf(cdPanel)));
 
-            try (FileWriter file = new FileWriter(FOLDERS_FILE.toFile())) {
-                file.write(folderArrayObject.toJSONString());
-                file.flush();
+                try (FileWriter file = new FileWriter(FOLDERS_FILE.toFile())) {
+                    file.write(folderArrayObject.toJSONString());
+                    file.flush();
+                }
+
+                System.out.println("Removed " + cdPanel.getTitle() + " from " + folder.getName());
+
+            } catch (IOException e) {
+                System.err.println("Error saving folder change to database: " + e.getMessage());
             }
-
-            System.out.println("Removed " + cdPanel.getTitle() + " from " + folder.getName());
-
-        } catch (IOException e) {
-            System.err.println("Error saving folder change to database: " + e.getMessage());
         }
     }
+
+    public void removeFromFolderFile(CDFolder folder) {
+        if (folderList.indexOf(folder) > 0) {
+            try {
+                JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE);
+                JSONArray folders = (JSONArray) folderArrayObject.get("folders");
+
+                folders.remove(folderList.indexOf(folder) - 1);
+
+                try (FileWriter file = new FileWriter(FOLDERS_FILE.toFile())) {
+                    file.write(folderArrayObject.toJSONString());
+                    file.flush();
+                }
+
+                System.out.println("Removed folder from database: " + folder.getName());
+
+            } catch (IOException e) {
+                System.err.println("Error removing folder from database: " + e.getMessage());
+            }
+        }
+    }
+
     public void refreshActivePanel(int currentTab) {
         activePanel.removeAll();
         for (CDPanel cdPanel : getCDFolder(currentTab)) {
@@ -277,23 +305,21 @@ public class CDManager {
         try {
             Files.createDirectories(DATA_DIR);
 
-            if (!Files.exists(FOLDERS_FILE)) {
-                try (InputStream in = getClass().getResourceAsStream("/folders.json")) {
-                    if (in != null) {
-                        Files.copy(in, FOLDERS_FILE);
-                    } else {
-                        System.err.println("Could not find folders.json in resources");
-                    }
+            try (InputStream in = getClass().getResourceAsStream("/folders.json")) {
+                if (in != null) {
+                    Files.deleteIfExists(FOLDERS_FILE);
+                    Files.copy(in, FOLDERS_FILE);
+                } else {
+                    System.err.println("Could not find folders.json in resources");
                 }
             }
 
-            if (!Files.exists(CD_INFO_FILE)) {
-                try (InputStream in = getClass().getResourceAsStream("/cd_info.json")) {
-                    if (in != null) {
-                        Files.copy(in, CD_INFO_FILE);
-                    } else {
-                        System.err.println("Could not find cd_info.json in resources");
-                    }
+            try (InputStream in = getClass().getResourceAsStream("/cd_info.json")) {
+                if (in != null) {
+                    Files.deleteIfExists(CD_INFO_FILE);
+                    Files.copy(in, CD_INFO_FILE);
+                } else {
+                    System.err.println("Could not find cd_info.json in resources");
                 }
             }
         } catch (IOException e) {

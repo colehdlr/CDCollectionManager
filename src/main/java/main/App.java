@@ -26,7 +26,7 @@ public class App {
 
     private final ArrayList<TabButton> sideTabs = new ArrayList<>();
     private final TabButton newFolderButton;
-    private int currentTab = 0;
+    private int currentTab;
 
     private final TabButton addCDButton;
 
@@ -43,7 +43,7 @@ public class App {
         activePanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
         JScrollPane activeScrollPane = new JScrollPane(activePanel);
         activeScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-        activeScrollPane.setPreferredSize(new Dimension(125,0));
+        activeScrollPane.setPreferredSize(new Dimension(125, 0));
 
         // Load CDs
         System.out.println("Creating CD Manager...");
@@ -81,6 +81,7 @@ public class App {
             public void mouseEntered(MouseEvent e) {
                 addCDButton.onHover();
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 addCDButton.offHover();
@@ -95,12 +96,17 @@ public class App {
                 BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
                 BorderFactory.createEmptyBorder(-2, 2, 0, 3)
         ));
-        sidePanel.setLayout( new FlowLayout(FlowLayout.CENTER, 0, 0));
+        sidePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
         // Create library
         createNewFolder("Library");
         // Load folders
         cdManager.loadFolders(this);
+
+        for (CDPanel cdPanel : cdManager.getCDFolder(0)) {
+            // Update the popup menu
+            cdPanel.updateCDPanelPopupMenu(cdManager.getFolderList(), 0);
+        }
 
         changeActivePanel(0);
 
@@ -115,6 +121,7 @@ public class App {
             public void mouseEntered(MouseEvent e) {
                 newFolderButton.onHover();
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 newFolderButton.offHover();
@@ -123,7 +130,7 @@ public class App {
         sidePanel.add(newFolderButton);
 
         mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(new EmptyBorder(0,1,0,0));
+        mainPanel.setBorder(new EmptyBorder(0, 1, 0, 0));
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setMinimumSize(new Dimension(0, 100));
         mainPanel.add(activeScrollPane, BorderLayout.CENTER);
@@ -139,7 +146,8 @@ public class App {
 
         // Add heart for favorites
         if (Objects.equals(name, "Favorites")) {
-            newFolderTab.add(new JLabel("♥"), BorderLayout.EAST);
+            newFolderTab.add(new JLabel("♥ "), BorderLayout.EAST);
+            System.out.println("Adding custom appearance for Favorites");
         }
 
         newFolderTab.addMouseListener(new MouseAdapter() {
@@ -147,7 +155,7 @@ public class App {
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     changeActivePanel(sideTabs.indexOf(newFolderTab));
-                } else if (e.getButton() == MouseEvent.BUTTON2 || e.getButton() == MouseEvent.BUTTON3 && !Objects.equals(name, "Library") && !Objects.equals(name, "♥ Favorites")) {
+                } else if (e.getButton() == MouseEvent.BUTTON2 || e.getButton() == MouseEvent.BUTTON3 && !Objects.equals(name, "Library") && !Objects.equals(name, "Favorites")) {
                     JPopupMenu popupMenu = new JPopupMenu();
 
                     JMenuItem renameItem = new JMenuItem("Rename");
@@ -166,7 +174,12 @@ public class App {
                         int response = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 
                         if (response == JOptionPane.YES_OPTION) {
-                            // TODO remove folder
+                            cdManager.removeFolder(cdManager.getCDFolder(name));
+                            sidePanel.remove(newFolderTab);
+                            sideTabs.remove(newFolderTab);
+
+                            sidePanel.revalidate();
+                            sidePanel.repaint();
                         }
                     });
 
@@ -198,7 +211,7 @@ public class App {
     }
 
     public void createNewFolder() {
-        String newFolderName = (String)JOptionPane.showInputDialog(
+        String newFolderName = (String) JOptionPane.showInputDialog(
                 null,
                 "Enter new folder name:",
                 "Create new folder",
@@ -212,9 +225,7 @@ public class App {
             JOptionPane.showMessageDialog(new JFrame(), "Please use valid folder name.", "Invalid Folder Name",
                     JOptionPane.WARNING_MESSAGE);
             return;
-        }
-        // Customer has closed the dialog
-        else if (Objects.equals(newFolderName, null)) {
+        } else if (Objects.equals(newFolderName, null)) {
             return;
         }
 
@@ -269,10 +280,10 @@ public class App {
         newCDItem.addActionListener(e -> cdManager.addCD());
         newFolderItem.addActionListener(e -> createNewFolder());
         libraryItem.addActionListener(e ->
-            changeActivePanel(0)
+                changeActivePanel(0)
         );
         favoritesItem.addActionListener(e ->
-            changeActivePanel(1)
+                changeActivePanel(1)
         );
     }
 
@@ -300,7 +311,7 @@ public class App {
     }
 
     public static void main(String[] args) {
-        System.setProperty( "apple.laf.useScreenMenuBar", "true" );
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("CDManager");
             Image iconImage = new ImageIcon(Objects.requireNonNull(App.class.getResource("/images/cd_icon.png"))).getImage();
@@ -323,4 +334,3 @@ public class App {
         });
     }
 }
-

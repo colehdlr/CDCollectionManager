@@ -15,6 +15,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
+// amazonq-ignore-next-line
 public class CDPanel extends JPanel {
     private final String title;
     private final String artist;
@@ -46,16 +47,13 @@ public class CDPanel extends JPanel {
 
         String titleText = this.title + " (" + this.date.substring(0, Math.min(this.date.length(), 4)) + ")";
         JLabel titleLabel = new JLabel(titleText);
-        titleLabel.setFont(new Font(titleLabel.getFont().getName(), Font.BOLD, titleLabel.getFont().getSize()-1));
+        titleLabel.setFont(new Font(titleLabel.getFont().getName(), Font.BOLD, titleLabel.getFont().getSize() - 1));
         this.setToolTipText(titleText + " - " + this.artist);
 
         this.add(titleLabel, BorderLayout.CENTER);
         JLabel artistLabel = new JLabel(this.artist);
-        artistLabel.setFont(new Font(artistLabel.getFont().getName(), Font.ITALIC, artistLabel.getFont().getSize()-1));
+        artistLabel.setFont(new Font(artistLabel.getFont().getName(), Font.ITALIC, artistLabel.getFont().getSize() - 1));
         this.add(artistLabel, BorderLayout.SOUTH);
-
-        // Update the popup menu
-        updateCDPanelPopupMenu(cdManager.getFolderList(), currentTab);
 
         // Add mouse listeners
         this.addMouseListener(new MouseAdapter() {
@@ -69,7 +67,7 @@ public class CDPanel extends JPanel {
                     dialog.setLayout(new BorderLayout(10, 10));
 
                     JSplitPane mainPanel = new JSplitPane();
-                    mainPanel.setBorder(BorderFactory.createEmptyBorder(2,2,0,0));
+                    mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 0));
                     mainPanel.setPreferredSize(new Dimension(500, 400));
                     mainPanel.setDividerLocation(350);
                     mainPanel.setResizeWeight(1);
@@ -121,14 +119,17 @@ public class CDPanel extends JPanel {
                         public boolean isCellEditable(int row, int column) {
                             return false;
                         }
+
                         @Override
                         public boolean isFocusable() {
                             return false;
                         }
+
                         @Override
                         public boolean isRowSelected(int row) {
                             return false;
                         }
+
                         @Override
                         public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
                             Component comp = super.prepareRenderer(renderer, row, column);
@@ -190,10 +191,12 @@ public class CDPanel extends JPanel {
                     public boolean isCellEditable(int row, int column) {
                         return false;
                     }
+
                     @Override
                     public boolean isFocusable() {
                         return false;
                     }
+
                     @Override
                     public boolean isRowSelected(int row) {
                         return false;
@@ -225,19 +228,36 @@ public class CDPanel extends JPanel {
         popupMenu = new JPopupMenu();
 
         // Favorite option
-        JMenuItem favoriteItem = new JMenuItem("Favorite");
-        favoriteItem.addActionListener(e1 ->
-            cdManager.addToFolder("♥ Favorites", this)
-        );
-        popupMenu.add(favoriteItem);
+        if (currentTab != 1) {
+            if (cdManager.getCDFolder(1).contains(this)) {
+                JMenuItem unfavoriteItem = new JMenuItem("Unfavorite");
+                unfavoriteItem.addActionListener(e1 -> {
+                        cdManager.removeCD(this, 1);
+                        cdManager.refreshActivePanel(currentTab);
+                });
+                popupMenu.add(unfavoriteItem);
+            } else {
+                JMenuItem favoriteItem = new JMenuItem("Favorite");
+                favoriteItem.addActionListener(e1 ->
+                        cdManager.addToFolder(1, this)
+                );
+                popupMenu.add(favoriteItem);
+            }
+        }
 
         // Add to collection submenu
         if (collectionList.size() > 2) {
             JMenu dynamicItems = new JMenu("Add to collection");
             for (int i = 2; i < collectionList.size(); i++) {
                 JMenuItem collectionItem = new JMenuItem(collectionList.get(i).getName());
-                final int finalI = i;
-                collectionItem.addActionListener(e1 -> cdManager.addToFolder(collectionList.get(finalI).getName(), this));
+
+                if (collectionList.get(i).contains(this)) {
+                    collectionItem.setForeground(Color.gray);
+                    collectionItem.setEnabled(false);
+                } else {
+                    final int finalI = i;
+                    collectionItem.addActionListener(e1 -> cdManager.addToFolder(collectionList.get(finalI).getName(), this));
+                }
                 dynamicItems.add(collectionItem);
             }
             popupMenu.add(dynamicItems);
@@ -245,8 +265,6 @@ public class CDPanel extends JPanel {
 
 
         // Remove Option
-        // IF CURREnt TAB IS LIBRARY THEN SHOW DELETE INSTEAD
-        // MAKE thIS BUTTON RED
         String deleteOrRemove = currentTab == 0 ? "Delete" : "Remove";
         JMenuItem removeItem = new JMenuItem("<html><font color='#8B0000'>" + deleteOrRemove + "</font></html>");
         removeItem.addActionListener(e1 -> {
@@ -258,9 +276,9 @@ public class CDPanel extends JPanel {
                 if (response == JOptionPane.YES_OPTION) {
                     cdManager.removeCD(this);
                 }
-            }
-            else {
+            } else {
                 cdManager.removeCD(this, currentTab);
+                cdManager.refreshActivePanel(currentTab);
             }
         });
 
@@ -269,4 +287,3 @@ public class CDPanel extends JPanel {
         popupMenu.add(removeItem);
     }
 }
-

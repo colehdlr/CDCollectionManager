@@ -24,7 +24,7 @@ public class ScaledImageLabel extends JLabel {
         g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        Insets insets = getBorder() != null ? getBorder().getBorderInsets(this) : new Insets(0,0,0,0);
+        Insets insets = getBorder() != null ? getBorder().getBorderInsets(this) : new Insets(0, 0, 0, 0);
 
         int containerWidth = getWidth() - (insets.left + insets.right);
         int containerHeight = getHeight() - (insets.top + insets.bottom);

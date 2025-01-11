@@ -2,6 +2,7 @@ package main.manager;
 
 import java.io.*;
 
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -23,10 +24,10 @@ public class CDManager {
     private final ArrayList<CDFolder> folderList;
     private final JPanel activePanel;
 
-    private static final String USER_HOME = System.getProperty("user.home");
-    private static final Path DATA_DIR = Paths.get(USER_HOME, ".collectionmanager");
-    private static final Path FOLDERS_FILE = DATA_DIR.resolve("folders.json");
-    private static final Path CD_INFO_FILE = DATA_DIR.resolve("cd_info.json");
+    private static File DATA_DIR;
+    private static File FOLDERS_FILE;
+    private static File CD_INFO_FILE;
+    private static File IMAGES_DIR;
 
     public CDManager(JPanel activePanel) {
         folderList = new ArrayList<>();
@@ -34,11 +35,20 @@ public class CDManager {
         System.out.println("CD Manager successfully created.\n");
 
         this.activePanel = activePanel;
+        initDataPaths();
+    }
+
+    private void initDataPaths() {
+        File jarFile = new File(App.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+        DATA_DIR = new File(jarFile.getParentFile().getParentFile(), "data");
+        FOLDERS_FILE = new File(DATA_DIR, "folders.json");
+        CD_INFO_FILE = new File(DATA_DIR, "cd_info.json");
+        IMAGES_DIR = new File(DATA_DIR, "images");
     }
 
     public void loadCDs() {
         try {
-            JSONArray cdArray = getJSONArray(CD_INFO_FILE, "cds");
+            JSONArray cdArray = getJSONArray(CD_INFO_FILE.toPath(), "cds");
             for (Object cd : cdArray) {
                 JSONObject cdObject = (JSONObject) cd;
 
@@ -51,12 +61,23 @@ public class CDManager {
                 // Load cover image from resources
                 ImageIcon cover;
                 String coverFileName = (String) cdObject.get("cover");
-                try (InputStream imageStream = getClass().getResourceAsStream("/images/" + coverFileName)) {
-                    if (imageStream != null) {
-                        cover = new ImageIcon(ImageIO.read(imageStream));
-                    } else {
-                        System.err.println("Could not find cover image: " + coverFileName);
-                        cover = new ImageIcon(); // Empty icon as fallback
+                File coverFile = new File(IMAGES_DIR, coverFileName);
+                if (coverFile.exists()) {
+                    cover = new ImageIcon(coverFile.getAbsolutePath());
+                    System.out.println("Loaded cover from file: " + coverFile.getAbsolutePath());
+                } else {
+                    // Fallback to resources if the file doesn't exist in the external directory
+                    try (InputStream imageStream = getClass().getResourceAsStream("/images/" + coverFileName)) {
+                        if (imageStream != null) {
+                            cover = new ImageIcon(ImageIO.read(imageStream));
+
+                            // Copy to local data for future use
+                            copyResourceToFile("/images/" + coverFileName, coverFile);
+                            System.out.println("Loaded cover from resources: /images/" + coverFileName);
+                        } else {
+                            System.err.println("Could not find cover image: " + coverFileName);
+                            cover = new ImageIcon(); // Empty icon as fallback
+                        }
                     }
                 }
 
@@ -70,7 +91,7 @@ public class CDManager {
                 System.out.println(title + " " + artist + " " + genre + " " + date + " " + cover + " " + tracks);
                 CDPanel newCDPanel = new CDPanel(title, artist, genre, date, cover, tracks, this, 0);
 
-                addToFolder(0, newCDPanel);
+                folderList.get(0).add(newCDPanel);
             }
             System.out.println("CDs successfully loaded.\n");
         } catch (Exception e) {
@@ -82,7 +103,7 @@ public class CDManager {
     public void loadFolders(App app) {
         System.out.println("Loading folders from database...");
         try {
-            JSONArray folderArray = getJSONArray(FOLDERS_FILE, "folders");
+            JSONArray folderArray = getJSONArray(FOLDERS_FILE.toPath(), "folders");
             System.out.println(folderArray);
 
             for (Object folderObject : folderArray) {
@@ -116,7 +137,7 @@ public class CDManager {
 
     public void saveToFoldersFile(int cdIndex, int folderIndex) {
         try {
-            JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE);
+            JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE.toPath());
             JSONObject folderObject = (JSONObject) ((JSONArray) folderArrayObject.get("folders")).get(folderIndex - 1);
             JSONArray cdIds = (JSONArray) folderObject.get("cdIds");
 
@@ -124,7 +145,7 @@ public class CDManager {
             boolean added = cdIds.add(cdIndex);
 
             // Write the updated JSON back to the file
-            try (FileWriter file = new FileWriter(FOLDERS_FILE.toFile())) {
+            try (FileWriter file = new FileWriter(FOLDERS_FILE)) {
                 file.write(folderArrayObject.toJSONString());
                 file.flush();
             }
@@ -157,7 +178,7 @@ public class CDManager {
     @SuppressWarnings("unchecked")
     public void saveNewFolder(String name) {
         try {
-            JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE);
+            JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE.toPath());
             JSONArray foldersArray = (JSONArray) folderArrayObject.get("folders");
 
             // Create a new folder object
@@ -169,7 +190,7 @@ public class CDManager {
             foldersArray.add(newFolder);
 
             // Write the updated JSON back to the file
-            try (FileWriter file = new FileWriter(FOLDERS_FILE.toFile())) {
+            try (FileWriter file = new FileWriter(FOLDERS_FILE)) {
                 file.write(folderArrayObject.toJSONString());
                 file.flush();
             }
@@ -214,6 +235,7 @@ public class CDManager {
     public void addToFolder(int folderIndex, CDPanel cdPanel) {
         // TODO : ADD VALIDATION
         folderList.get(folderIndex).add(cdPanel);
+        saveToFoldersFile(getCDFolder(0).indexOf(cdPanel), folderIndex);
     }
 
     public ArrayList<CDFolder> getFolderList() {
@@ -252,12 +274,12 @@ public class CDManager {
     public void removeFromFolderFile(CDFolder folder, CDPanel cdPanel) {
         if (folderList.indexOf(folder) > 0) {
             try {
-                JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE);
+                JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE.toPath());
                 JSONObject folderObject = (JSONObject) ((JSONArray) folderArrayObject.get("folders")).get(folderList.indexOf(folder) - 1);
                 JSONArray cdIds = (JSONArray) folderObject.get("cdIds");
                 cdIds.remove(Long.valueOf(folderList.get(0).indexOf(cdPanel)));
 
-                try (FileWriter file = new FileWriter(FOLDERS_FILE.toFile())) {
+                try (FileWriter file = new FileWriter(FOLDERS_FILE)) {
                     file.write(folderArrayObject.toJSONString());
                     file.flush();
                 }
@@ -273,12 +295,12 @@ public class CDManager {
     public void removeFromFolderFile(CDFolder folder) {
         if (folderList.indexOf(folder) > 0) {
             try {
-                JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE);
+                JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE.toPath());
                 JSONArray folders = (JSONArray) folderArrayObject.get("folders");
 
                 folders.remove(folderList.indexOf(folder) - 1);
 
-                try (FileWriter file = new FileWriter(FOLDERS_FILE.toFile())) {
+                try (FileWriter file = new FileWriter(FOLDERS_FILE)) {
                     file.write(folderArrayObject.toJSONString());
                     file.flush();
                 }
@@ -302,28 +324,53 @@ public class CDManager {
     }
 
     public void loadDataFiles() {
+        System.out.println("Data directory path: " + DATA_DIR.getAbsolutePath());
+
+        if (DATA_DIR.exists() && DATA_DIR.isDirectory()) {
+            System.out.println("Data folder found - loading from external data directory.");
+            loadFromExternalDirectory();
+        } else {
+            System.out.println("No data folder found - creating data folder and loading from resources.");
+            initFromResources();
+        }
+    }
+
+    private void loadFromExternalDirectory() {
         try {
-            Files.createDirectories(DATA_DIR);
-
-            try (InputStream in = getClass().getResourceAsStream("/folders.json")) {
-                if (in != null) {
-                    Files.deleteIfExists(FOLDERS_FILE);
-                    Files.copy(in, FOLDERS_FILE);
-                } else {
-                    System.err.println("Could not find folders.json in resources");
-                }
+            System.out.println("LOADING FROM LOCAL DATA...");
+            if (!FOLDERS_FILE.exists() || !CD_INFO_FILE.exists()) {
+                throw new IOException("Required files are missing in the data directory.");
             }
-
-            try (InputStream in = getClass().getResourceAsStream("/cd_info.json")) {
-                if (in != null) {
-                    Files.deleteIfExists(CD_INFO_FILE);
-                    Files.copy(in, CD_INFO_FILE);
-                } else {
-                    System.err.println("Could not find cd_info.json in resources");
-                }
-            }
+            // Files exist, so we can proceed with loading them
+            System.out.println("Successfully loaded data from external directory.");
         } catch (IOException e) {
-            System.err.println("Error initializing data files: " + e.getMessage());
+            System.err.println("Error loading from external data directory: " + e.getMessage());
+            initFromResources();
+        }
+    }
+
+    private void initFromResources() {
+        try {
+            System.out.println("CREATING DATA FOLDER AND LOADING FROM RESOURCES...");
+            DATA_DIR.mkdirs();
+            IMAGES_DIR.mkdirs();
+
+            copyResourceToFile("/folders.json", FOLDERS_FILE);
+            copyResourceToFile("/cd_info.json", CD_INFO_FILE);
+
+            System.out.println("Successfully created data folder and loaded resources.");
+        } catch (IOException e) {
+            System.err.println("Error creating data folder and loading from resources: " + e.getMessage());
+        }
+    }
+
+    private void copyResourceToFile(String resourcePath, File destFile) throws IOException {
+        try (InputStream inputStream = getClass().getResourceAsStream(resourcePath)) {
+            if (inputStream != null) {
+                Files.copy(inputStream, destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                throw new IOException("Could not find " + resourcePath + " in resources");
+            }
         }
     }
 

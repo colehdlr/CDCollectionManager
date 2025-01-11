@@ -229,13 +229,16 @@ public class App {
             return;
         }
 
+        // Add new folder tab then add back new folder button and repaint
+        sidePanel.remove(newFolderButton);
+
+        // Done separately as not all cases require creation of logical folder
+        cdManager.createNewFolder(newFolderName); // New logical folder
+        createNewFolder(newFolderName); // New visual folder
+
         // Save folder to file
         cdManager.saveNewFolder(newFolderName);
 
-        // Add new folder tab then add back new folder button and repaint
-        sidePanel.remove(newFolderButton);
-        cdManager.createNewFolder(newFolderName);
-        createNewFolder(newFolderName);
         sidePanel.add(newFolderButton);
         sidePanel.revalidate();
         sidePanel.repaint();

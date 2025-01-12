@@ -50,6 +50,8 @@ public class CDPanel extends JPanel {
         titleLabel.setFont(new Font(titleLabel.getFont().getName(), Font.BOLD, titleLabel.getFont().getSize() - 1));
         this.setToolTipText(titleText + " - " + this.artist);
 
+        this.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         this.add(titleLabel, BorderLayout.CENTER);
         JLabel artistLabel = new JLabel(this.artist);
         artistLabel.setFont(new Font(artistLabel.getFont().getName(), Font.ITALIC, artistLabel.getFont().getSize() - 1));
@@ -224,6 +226,10 @@ public class CDPanel extends JPanel {
         return title;
     }
 
+    public String getArtist() {
+        return artist;
+    }
+
     public void updateCDPanelPopupMenu(ArrayList<CDFolder> collectionList, int currentTab) {
         popupMenu = new JPopupMenu();
 
@@ -285,5 +291,13 @@ public class CDPanel extends JPanel {
         // Add all items to popup menu
         popupMenu.addSeparator();  // Adds a separation line
         popupMenu.add(removeItem);
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public int getNumberOfTracks() {
+        return tracks.size();
     }
 }

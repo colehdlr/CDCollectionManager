@@ -25,6 +25,7 @@ public class TabButton extends JPanel {
         this.add(new JLabel(name), BorderLayout.WEST);
         this.setPreferredSize(new Dimension(150, 50));
         this.setBorder(INACTIVE_BORDER);
+        this.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 
     public void setActive() {

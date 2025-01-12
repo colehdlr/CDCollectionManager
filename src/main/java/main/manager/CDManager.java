@@ -40,7 +40,7 @@ public class CDManager {
 
     private void initDataPaths() {
         File jarFile = new File(App.class.getProtectionDomain().getCodeSource().getLocation().getPath());
-        DATA_DIR = new File(jarFile.getParentFile().getParentFile(), "data");
+        DATA_DIR = new File(jarFile.getParentFile(), "data");
         FOLDERS_FILE = new File(DATA_DIR, "folders.json");
         CD_INFO_FILE = new File(DATA_DIR, "cd_info.json");
         IMAGES_DIR = new File(DATA_DIR, "images");
@@ -160,10 +160,59 @@ public class CDManager {
         }
     }
 
-    public void addCD() {
-        // TODO : Add a new CD to the list
+    public void addCD(String title, String artist, String genre, String date, String coverPath, ArrayList<Track> tracks, int currentTab) {
+        System.out.println("Adding CD: " + title + " by " + artist + " (" + date + "), " + genre + ", Cover: " + coverPath + ", Tracks: " + tracks.size());
 
-        // Return CD Panel
+        // Save image to data/images
+        String imageName = title.replaceAll("\\s+", "").toLowerCase() + ".jpg";
+        File destImageFile = new File(IMAGES_DIR, imageName);
+        try {
+            Files.copy(Paths.get(coverPath), destImageFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            System.err.println("Error copying image file: " + e.getMessage());
+        }
+
+        // Save CD info
+        try {
+            JSONObject cdInfoObject = getJSONObject(CD_INFO_FILE.toPath());
+            JSONArray cdsArray = (JSONArray) cdInfoObject.get("cds");
+
+            JSONObject newCD = new JSONObject();
+            newCD.put("title", title);
+            newCD.put("artist", artist);
+            newCD.put("genre", genre);
+            newCD.put("date", date);
+            newCD.put("cover", imageName);
+
+            JSONArray tracksArray = new JSONArray();
+            for (Track track : tracks) {
+                JSONObject trackObject = new JSONObject();
+                trackObject.put("title", track.getTitle());
+                trackObject.put("duration", track.getDuration());
+                tracksArray.add(trackObject);
+            }
+            newCD.put("tracks", tracksArray);
+
+            cdsArray.add(newCD);
+
+            try (FileWriter file = new FileWriter(CD_INFO_FILE)) {
+                file.write(cdInfoObject.toJSONString());
+                file.flush();
+            }
+        } catch (IOException e) {
+            System.err.println("Error saving CD to cd_info.json: " + e.getMessage());
+        }
+
+        // Add cdPanel to arraylist folderList index one
+        ImageIcon cover = new ImageIcon(destImageFile.getAbsolutePath());
+        CDPanel newCDPanel = new CDPanel(title, artist, genre, date, cover, tracks, this, currentTab);
+        folderList.get(0).add(newCDPanel);
+
+        // Refresh the active panel to show the new CD
+        refreshActivePanel(currentTab);
+        newCDPanel.updateCDPanelPopupMenu(folderList, currentTab);
+
+        System.out.println("CD added successfully: " + title);
     }
 
     public void createNewFolder(String name) {
@@ -233,7 +282,6 @@ public class CDManager {
     }
 
     public void addToFolder(int folderIndex, CDPanel cdPanel) {
-        // TODO : ADD VALIDATION
         folderList.get(folderIndex).add(cdPanel);
         saveToFoldersFile(getCDFolder(0).indexOf(cdPanel), folderIndex);
     }
@@ -244,17 +292,47 @@ public class CDManager {
 
     // Remove CD from entire library
     public void removeCD(CDPanel cdPanel) {
-        // TODO : fix this function
-
-        for (CDFolder folder : folderList) {
-            removeFromFolderFile(folder, cdPanel);
+        for (int i = 1; i < folderList.size(); i++) {
+            removeFromFolderFile(folderList.get(i), cdPanel);
         }
 
         // Remove from cd_info file
+        try {
+            JSONObject cdInfoObject = getJSONObject(CD_INFO_FILE.toPath());
+            JSONArray cdsArray = (JSONArray) cdInfoObject.get("cds");
+
+            for (int i = 0; i < cdsArray.size(); i++) {
+                JSONObject cd = (JSONObject) cdsArray.get(i);
+                if (cd.get("title").equals(cdPanel.getTitle()) && cd.get("artist").equals(cdPanel.getArtist())) {
+                    cdsArray.remove(i);
+                    break;
+                }
+            }
+
+            try (FileWriter file = new FileWriter(CD_INFO_FILE)) {
+                file.write(cdInfoObject.toJSONString());
+                file.flush();
+            }
+        } catch (IOException e) {
+            System.err.println("Error removing CD from cd_info.json: " + e.getMessage());
+        }
 
         // Remove image from library
+        String imageName = cdPanel.getTitle().replaceAll("\\s+", "").toLowerCase() + ".jpg";
+        File imageFile = new File(IMAGES_DIR, imageName);
+        if (imageFile.exists()) {
+            if (!imageFile.delete()) {
+                System.err.println("Failed to delete image file: " + imageFile.getAbsolutePath());
+            }
+        }
 
+        // Remove from the main library (folderList.get(0))
+        folderList.get(0).remove(cdPanel);
+        for (CDPanel item : folderList.get(0)) {
+            System.out.println(item.getTitle());
+        }
         refreshActivePanel(0);
+        System.out.println("CD removed successfully: " + cdPanel.getTitle());
     }
 
     // Remove CD from selected folder

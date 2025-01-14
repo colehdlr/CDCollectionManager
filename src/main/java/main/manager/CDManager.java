@@ -43,7 +43,7 @@ public class CDManager {
 
     private void initDataPaths() {
         File jarFile = new File(App.class.getProtectionDomain().getCodeSource().getLocation().getPath());
-        DATA_DIR = new File(jarFile.getParentFile().getParentFile(), "data");
+        DATA_DIR = new File(jarFile.getParentFile(), "data");
         FOLDERS_FILE = new File(DATA_DIR, "folders.json");
         CD_INFO_FILE = new File(DATA_DIR, "cd_info.json");
         IMAGES_DIR = new File(DATA_DIR, "images");

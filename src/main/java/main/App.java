@@ -764,7 +764,7 @@ public class App {
 
                 // Save cover image
                 URL imageURL = new URL(imageUrl);
-                Path coversDir = Paths.get("covers");
+                Path coversDir = Paths.get("temp");
                 if (!Files.exists(coversDir)) {
                     Files.createDirectories(coversDir);
                 }

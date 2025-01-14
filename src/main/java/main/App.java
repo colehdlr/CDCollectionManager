@@ -17,8 +17,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -62,9 +61,11 @@ public class App {
         activeScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
         activeScrollPane.setPreferredSize(new Dimension(125, 0));
 
+        JTextField searchField = new JTextField();
+
         // Load CDs
         System.out.println("Creating CD Manager...");
-        cdManager = new CDManager(activePanel);
+        cdManager = new CDManager(activePanel, searchField);
         cdManager.loadDataFiles();
         cdManager.loadCDs();
 
@@ -180,7 +181,28 @@ public class App {
         });
         rightTopPanel.add(infoIconLabel);
 
+        JPanel searchBar = new JPanel();
+        searchBar.setPreferredSize(new Dimension(300, 10));
+        searchBar.setOpaque(false);
+
+        searchBar.add(new JLabel("Search: "));
+
+        searchField.setPreferredSize(new Dimension(200, 20));
+        searchField.getCaret().setBlinkRate(0);
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                // This will be called every time a key is typed (pressed and released)
+                SwingUtilities.invokeLater(() -> {
+                    cdManager.refreshActivePanel(currentTab);
+                });
+            }
+        });
+        searchBar.add(searchField);
+
         topPanel.add(leftTopPanel);
+        topPanel.add(Box.createHorizontalGlue());
+        topPanel.add(searchBar);
         topPanel.add(Box.createHorizontalGlue());
         topPanel.add(rightTopPanel);
 

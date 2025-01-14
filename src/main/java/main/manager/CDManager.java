@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
+import java.util.Objects;
 
 import main.App;
 import main.gui.CDPanel;
@@ -23,24 +24,26 @@ import javax.swing.*;
 public class CDManager {
     private final ArrayList<CDFolder> folderList;
     private final JPanel activePanel;
+    private final JTextField searchTextField;
 
     private static File DATA_DIR;
     private static File FOLDERS_FILE;
     private static File CD_INFO_FILE;
     private static File IMAGES_DIR;
 
-    public CDManager(JPanel activePanel) {
+    public CDManager(JPanel activePanel, JTextField searchTextField) {
         folderList = new ArrayList<>();
         folderList.add(new CDFolder("Library"));
         System.out.println("CD Manager successfully created.\n");
 
         this.activePanel = activePanel;
+        this.searchTextField = searchTextField;
         initDataPaths();
     }
 
     private void initDataPaths() {
         File jarFile = new File(App.class.getProtectionDomain().getCodeSource().getLocation().getPath());
-        DATA_DIR = new File(jarFile.getParentFile(), "data");
+        DATA_DIR = new File(jarFile.getParentFile().getParentFile(), "data");
         FOLDERS_FILE = new File(DATA_DIR, "folders.json");
         CD_INFO_FILE = new File(DATA_DIR, "cd_info.json");
         IMAGES_DIR = new File(DATA_DIR, "images");
@@ -394,9 +397,12 @@ public class CDManager {
     public void refreshActivePanel(int currentTab) {
         activePanel.removeAll();
         for (CDPanel cdPanel : getCDFolder(currentTab)) {
-            activePanel.add(cdPanel);
+            if (!Objects.equals(searchTextField.getText(), null) && (cdPanel.getTitle().toLowerCase().contains(searchTextField.getText().toLowerCase()) || cdPanel.getArtist().toLowerCase().contains(searchTextField.getText().toLowerCase()))) {
+                activePanel.add(cdPanel);
+            }
         }
 
+        System.out.println("ASD");
         activePanel.revalidate();
         activePanel.repaint();
     }

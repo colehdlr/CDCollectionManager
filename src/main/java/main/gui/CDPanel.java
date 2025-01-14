@@ -61,8 +61,6 @@ public class CDPanel extends JPanel {
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                // TODO fix cover image positioning
-
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     Dialog dialog = new JDialog();
                     dialog.setTitle(title);

@@ -9,10 +9,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.runner.Request;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -20,7 +18,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,6 +69,7 @@ public class App {
         updateMenuBar();
 
         // Init GUI
+        // Top panel
         topPanel = new JToolBar();
         topPanel.setFloatable(false);
         topPanel.setBackground(Color.LIGHT_GRAY);
@@ -122,11 +120,13 @@ public class App {
         infoIconLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                // Collection info popup window
                 int numberOfCDs = cdManager.getCDFolder(0).size();
                 Map<String, Long> genreCounts = new HashMap<>();
                 Map<String, Long> artistCounts = new HashMap<>();
                 int numberOfTracks = 0;
 
+                // Get number of Artists and Genres
                 for (CDPanel cdPanel : cdManager.getCDFolder(0)) {
                     String artist = cdPanel.getArtist();
                     if (artist != null && !artist.trim().isEmpty()) {
@@ -141,6 +141,7 @@ public class App {
                     numberOfTracks += cdPanel.getNumberOfTracks();
                 }
 
+                // Add to table
                 Function<Map<String, Long>, String> createTopTable = (Map<String, Long> counts) -> {
                     StringBuilder table = new StringBuilder();
                     table.append("<table border='1' style='border-collapse: collapse;'>");
@@ -192,10 +193,10 @@ public class App {
         searchField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
-                // This will be called every time a key is typed (pressed and released)
-                SwingUtilities.invokeLater(() -> {
-                    cdManager.refreshActivePanel(currentTab);
-                });
+                // This will be called every time a key is typed
+                SwingUtilities.invokeLater(() ->
+                    cdManager.refreshActivePanel(currentTab)
+                );
             }
         });
         searchBar.add(searchField);
@@ -206,6 +207,7 @@ public class App {
         topPanel.add(Box.createHorizontalGlue());
         topPanel.add(rightTopPanel);
 
+        // Side panel
         sidePanel = new JPanel();
         sidePanel.setMinimumSize(new Dimension(150, 0));
         sidePanel.setPreferredSize(new Dimension(150, 0));
@@ -267,23 +269,27 @@ public class App {
             System.out.println("Adding custom appearance for Favorites");
         }
 
+        // Create new folder
         newFolderTab.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
+                    // Left click -> open tab
                     changeActivePanel(sideTabs.indexOf(newFolderTab));
                 } else if (e.getButton() == MouseEvent.BUTTON2 || e.getButton() == MouseEvent.BUTTON3 && !Objects.equals(name, "Library") && !Objects.equals(name, "Favorites")) {
+                    // Right click -> open options menu
                     JPopupMenu popupMenu = new JPopupMenu();
 
                     JMenuItem renameItem = new JMenuItem("Rename");
                     renameItem.addActionListener(e1 -> {
                         String newName = JOptionPane.showInputDialog(null, "Enter new name:", "Rename", JOptionPane.PLAIN_MESSAGE);
                         if (newName != null && !newName.trim().isEmpty()) {
-                            // TODO change name
+                            // This feature will be implemented in v2.0
                         }
                     });
                     popupMenu.add(renameItem);
 
+                    // Remove folder from system
                     JMenuItem removeItem = new JMenuItem("<html><font color='#8B0000'>Delete</font></html>");
                     removeItem.addActionListener(e1 -> {
                         final String message = "Are you sure you want to delete " + name + "?";
@@ -448,6 +454,7 @@ public class App {
         String[] labels = {"Title:", "Artist:", "Genre:", "Date:"};
         JTextField[] textFields = new JTextField[labels.length - 1];
 
+        // Add labels to table
         for (int i = 0; i < labels.length - 1; i++) {
             addManually.add(new JLabel(labels[i]), gbc);
             gbc.gridx = 1;
@@ -457,6 +464,7 @@ public class App {
             gbc.gridy++;
         }
 
+        // Create form
         addManually.add(new JLabel(labels[labels.length - 1]), gbc);
         gbc.gridx = 1;
         JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -481,6 +489,7 @@ public class App {
         JScrollPane trackScrollPane = new JScrollPane(trackList);
         trackListPanel.add(trackScrollPane, BorderLayout.CENTER);
 
+        // Track input controls
         JPanel trackInputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JTextField trackNameField = new JTextField(15);
         JTextField trackDurationField = new JTextField(5);
@@ -647,18 +656,22 @@ public class App {
             if (Objects.equals(searchField.getText(), "")) {
                 JOptionPane.showMessageDialog(dialog, "No text in search field.", "Add CD Error", JOptionPane.WARNING_MESSAGE);
             } else {
+                // Access Discogs API
                 String urlString = "https://api.discogs.com/database/search?q=" + searchField.getText() + "&type=release";
                 try {
+                    // Connect to API
+                    // Search API with search paramater
                     URL url = new URL(urlString);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("GET");
 
                     connection.setRequestProperty("Authorization", "Discogs token=" + DISCOGS_ACCESS_TOKEN);
-                    connection.setRequestProperty("User-Agent", "YourAppName/1.0");
+                    connection.setRequestProperty("UserAgent", "CDManager/1.0");
 
                     int responseCode = connection.getResponseCode();
                     System.out.println("Response Code: " + responseCode);
 
+                    // Read output of API
                     BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     String inputLine;
                     StringBuilder response = new StringBuilder();
@@ -669,12 +682,14 @@ public class App {
 
                     mostRecentDiscogsResponse = response.toString();
 
+                    // Parse results
                     JSONParser parser = new JSONParser();
                     JSONObject jsonResponse = (JSONObject) parser.parse(response.toString());
                     JSONArray results = (JSONArray) jsonResponse.get("results");
 
                     DefaultListModel<String> listModel = new DefaultListModel<>();
 
+                    // Add results to table for user to select
                     for (Object resultObj : results) {
                         JSONObject result = (JSONObject) resultObj;
                         String title = (String) result.get("title");
@@ -707,6 +722,7 @@ public class App {
 
         JButton addSearchButton = new JButton("Add Selected CD");
         addSearchButton.addActionListener(e1 -> {
+            // Check user has selected a CD
             int selectedIndex = searchResults.getSelectedIndex();
             if (selectedIndex == -1) {
                 JOptionPane.showMessageDialog(dialog, "Please select a CD from the search results.", "No Selection", JOptionPane.WARNING_MESSAGE);
@@ -736,7 +752,7 @@ public class App {
                 }
                 detailIn.close();
 
-                // Parse the detailed JSON response
+                // Parse the JSON response
                 JSONObject detailJson = (JSONObject) new JSONParser().parse(detailResponse.toString());
 
                 // Extract required information
@@ -746,7 +762,7 @@ public class App {
                 String releaseDate = (String) detailJson.get("released");
                 String imageUrl = (String) detailJson.get("thumb");
 
-                // Download and save the image
+                // Save cover image
                 URL imageURL = new URL(imageUrl);
                 Path coversDir = Paths.get("covers");
                 if (!Files.exists(coversDir)) {

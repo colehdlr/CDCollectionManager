@@ -206,12 +206,12 @@ public class CDManager {
             System.err.println("Error saving CD to cd_info.json: " + e.getMessage());
         }
 
-        // Add cdPanel to arraylist folderList index one
+        // Add cdPanel to Library
         ImageIcon cover = new ImageIcon(destImageFile.getAbsolutePath());
         CDPanel newCDPanel = new CDPanel(title, artist, genre, date, cover, tracks, this, currentTab);
         folderList.get(0).add(newCDPanel);
 
-        // Refresh the active panel to show the new CD
+        // Refresh the active panel to show new CD
         refreshActivePanel(currentTab);
         newCDPanel.updateCDPanelPopupMenu(folderList, currentTab);
 
@@ -233,15 +233,14 @@ public class CDManager {
             JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE.toPath());
             JSONArray foldersArray = (JSONArray) folderArrayObject.get("folders");
 
-            // Create a new folder object
+            // Create a new folder
             JSONObject newFolder = new JSONObject();
             newFolder.put("name", name);
             newFolder.put("cdIds", new JSONArray());
 
-            // Add the new folder to the array
             foldersArray.add(newFolder);
 
-            // Write the updated JSON back to the file
+            // Write the updated JSON back to file
             try (FileWriter file = new FileWriter(FOLDERS_FILE)) {
                 file.write(folderArrayObject.toJSONString());
                 file.flush();
@@ -268,8 +267,10 @@ public class CDManager {
 
     public void addToFolder(String folderName, CDPanel cdPanel) {
         for (CDFolder folder : folderList) {
+            // Looks for name in folderList
             if (folder.getName().equals(folderName)) {
                 if (folder.stream().noneMatch(cd -> cd.getTitle().equals(cdPanel.getTitle()))) {
+                    // Adds passed cdPanel to selected folder
                     folder.add(cdPanel);
                     saveToFoldersFile(getCDFolder(0).indexOf(cdPanel), folderList.indexOf(folder));
                     break;
@@ -329,7 +330,7 @@ public class CDManager {
             }
         }
 
-        // Remove from the main library (folderList.get(0))
+        // Remove from the Library
         folderList.get(0).remove(cdPanel);
         for (CDPanel item : folderList.get(0)) {
             System.out.println(item.getTitle());
@@ -352,14 +353,19 @@ public class CDManager {
         removeFromFolderFile(folder);
     }
 
+    // Removes cd from a folder
     public void removeFromFolderFile(CDFolder folder, CDPanel cdPanel) {
         if (folderList.indexOf(folder) > 0) {
             try {
+                // Read file
                 JSONObject folderArrayObject = getJSONObject(FOLDERS_FILE.toPath());
                 JSONObject folderObject = (JSONObject) ((JSONArray) folderArrayObject.get("folders")).get(folderList.indexOf(folder) - 1);
                 JSONArray cdIds = (JSONArray) folderObject.get("cdIds");
+
+                // Remove cd
                 cdIds.remove(Long.valueOf(folderList.get(0).indexOf(cdPanel)));
 
+                // Write back to file
                 try (FileWriter file = new FileWriter(FOLDERS_FILE)) {
                     file.write(folderArrayObject.toJSONString());
                     file.flush();
@@ -373,6 +379,7 @@ public class CDManager {
         }
     }
 
+    // With no CD specified, this override removes the Folder
     public void removeFromFolderFile(CDFolder folder) {
         if (folderList.indexOf(folder) > 0) {
             try {
@@ -394,6 +401,7 @@ public class CDManager {
         }
     }
 
+    // Reloads all CDs on the active panel
     public void refreshActivePanel(int currentTab) {
         activePanel.removeAll();
         for (CDPanel cdPanel : getCDFolder(currentTab)) {

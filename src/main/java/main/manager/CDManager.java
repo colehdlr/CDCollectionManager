@@ -402,7 +402,6 @@ public class CDManager {
             }
         }
 
-        System.out.println("ASD");
         activePanel.revalidate();
         activePanel.repaint();
     }
